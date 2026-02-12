@@ -1,0 +1,183 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "MEHMOS AUTO WIN",
+    LoadingTitle = "MEHMOS AUTO WIN",
+    LoadingSubtitle = "by MEHMOS35",
+    Theme = "Default",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+})
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+repeat task.wait() until workspace.CurrentCamera
+
+-- Target CFrame
+local targetCFrame = CFrame.new(-2532.89, 1052.52, -24.62)
+
+-- Variables
+local autoWinEnabled = false
+local autoWinConnection = nil
+local autoRebirthEnabled = false
+local autoRebirthConnection = nil
+
+-- Functions
+local function startAutoWin()
+    if autoWinConnection then return end
+
+    autoWinConnection = RunService.Heartbeat:Connect(function()
+        local character = LocalPlayer.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+        local camera = workspace.CurrentCamera
+
+        if humanoid and rootPart and camera then
+            rootPart.CFrame = targetCFrame
+            local lookVector = camera.CFrame.LookVector
+            humanoid:Move(Vector3.new(lookVector.X, 0, lookVector.Z), true)
+        end
+    end)
+end
+
+local function stopAutoWin()
+    if autoWinConnection then
+        autoWinConnection:Disconnect()
+        autoWinConnection = nil
+    end
+end
+
+local function toggleAutoWin()
+    autoWinEnabled = not autoWinEnabled
+
+    if autoWinEnabled then
+        startAutoWin()
+        Rayfield:Notify({Title = "Auto Win", Content = "Activated!", Duration = 3, Image = 4483362458})
+    else
+        stopAutoWin()
+        Rayfield:Notify({Title = "Auto Win", Content = "Deactivated!", Duration = 3, Image = 4483362458})
+    end
+end
+
+local function attemptRebirth()
+    local success, err = pcall(function()
+        ReplicatedStorage["1. Remotes"].Rebirth:FireServer()
+    end)
+
+    if not success then
+        warn("Auto Rebirth Error:", err)
+    end
+
+    return success
+end
+
+local function startAutoRebirth()
+    if autoRebirthConnection then return end
+
+    local lastAttempt = 0
+    autoRebirthConnection = RunService.Heartbeat:Connect(function()
+        local currentTime = tick()
+        if currentTime - lastAttempt >= 1 then
+            lastAttempt = currentTime
+            attemptRebirth()
+        end
+    end)
+end
+
+local function stopAutoRebirth()
+    if autoRebirthConnection then
+        autoRebirthConnection:Disconnect()
+        autoRebirthConnection = nil
+    end
+end
+
+local function toggleAutoRebirth()
+    autoRebirthEnabled = not autoRebirthEnabled
+
+    if autoRebirthEnabled then
+        startAutoRebirth()
+        Rayfield:Notify({Title = "Auto Rebirth", Content = "Activated!", Duration = 3, Image = 4483362458})
+    else
+        stopAutoRebirth()
+        Rayfield:Notify({Title = "Auto Rebirth", Content = "Deactivated!", Duration = 3, Image = 4483362458})
+    end
+end
+
+-- Main Tab
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+local MainSection = MainTab:CreateSection("Auto Win System")
+
+MainTab:CreateToggle({
+    Name = "Auto Win",
+    CurrentValue = false,
+    Flag = "AutoWin",
+    Callback = function(state)
+        autoWinEnabled = state
+        if autoWinEnabled then
+            startAutoWin()
+            Rayfield:Notify({Title = "Auto Win", Content = "Activated!", Duration = 3, Image = 4483362458})
+        else
+            stopAutoWin()
+            Rayfield:Notify({Title = "Auto Win", Content = "Deactivated!", Duration = 3, Image = 4483362458})
+        end
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Rebirth",
+    CurrentValue = false,
+    Flag = "AutoRebirth",
+    Callback = function(state)
+        autoRebirthEnabled = state
+        if autoRebirthEnabled then
+            startAutoRebirth()
+            Rayfield:Notify({Title = "Auto Rebirth", Content = "Activated!", Duration = 3, Image = 4483362458})
+        else
+            stopAutoRebirth()
+            Rayfield:Notify({Title = "Auto Rebirth", Content = "Deactivated!", Duration = 3, Image = 4483362458})
+        end
+    end,
+})
+
+MainTab:CreateKeybind({
+    Name = "Toggle Auto Win",
+    CurrentKeybind = "E",
+    HoldToInteract = false,
+    Flag = "AutoWinKeybind",
+    Callback = function()
+        toggleAutoWin()
+    end,
+})
+
+MainTab:CreateKeybind({
+    Name = "Toggle Auto Rebirth",
+    CurrentKeybind = "R",
+    HoldToInteract = false,
+    Flag = "AutoRebirthKeybind",
+    Callback = function()
+        toggleAutoRebirth()
+    end,
+})
+
+-- Info Tab
+local InfoTab = Window:CreateTab("Info", 4483362458)
+
+local InfoSection = InfoTab:CreateSection("Information")
+
+InfoTab:CreateLabel("Script by MEHMOS35")
+InfoTab:CreateLabel("Press E to toggle Auto Win")
+InfoTab:CreateLabel("Press R to toggle Auto Rebirth")
+
+-- Loaded
+Rayfield:Notify({
+    Title = "Mehmos Script",
+    Content = "Successfully Loaded!",
+    Duration = 3,
+    Image = 4483362458,
+})
